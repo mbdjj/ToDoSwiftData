@@ -12,12 +12,11 @@ struct ContentView: View {
     
     @Environment(\.modelContext) var context
     
-    @State private var showCreate = false
-    @State private var toDoToEdit: ToDoItem?
-    @Query(
-        filter: #Predicate { !$0.isCompleted },
-        sort: \.timestamp
-    ) private var items: [ToDoItem]
+    @State private var showCreateCategory = false
+    @State private var showCreateToDo = false
+    @State private var toDoToEdit: Item?
+    
+    @Query(sort: \.timestamp) private var items: [Item]
     
     var body: some View {
         NavigationStack {
@@ -39,6 +38,15 @@ struct ContentView: View {
                             
                             Text("\(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .shortened))")
                                 .font(.callout)
+                            
+                            if let category = item.category {
+                                Text(category.title)
+                                    .foregroundStyle(.blue)
+                                    .bold()
+                                    .padding(.horizontal)
+                                    .padding(.vertical, 8)
+                                    .background(Color.blue.opacity(0.1), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                            }
                         }
                         
                         Spacer()
@@ -77,24 +85,41 @@ struct ContentView: View {
             .navigationTitle("My To Do List")
             .toolbar {
                 ToolbarItem {
-                    Button {
-                        showCreate.toggle()
-                    } label: {
-                        Label("Add Item", systemImage: "plus")
+                    Button("New Category") {
+                        showCreateCategory.toggle()
                     }
                 }
             }
-            .sheet(isPresented: $showCreate, content: {
+            .sheet(isPresented: $showCreateToDo, content: {
                 NavigationStack {
-                    CreateView()
+                    ModifyToDoView()
                 }
-                .presentationDetents([.medium])
+                .presentationDetents([.medium, .large])
+            })
+            .sheet(isPresented: $showCreateCategory, content: {
+                NavigationStack {
+                    CreateCategoryView()
+                }
+                .presentationDetents([.medium, .large])
             })
             .sheet(item: $toDoToEdit) {
                 toDoToEdit = nil
             } content: { item in
                 NavigationStack {
                     UpdateToDoView(item: item)
+                }
+            }
+            .safeAreaInset(edge: .bottom, alignment: .leading) {
+                Button {
+                    showCreateToDo.toggle()
+                } label: {
+                    Label("New ToDo", systemImage: "plus")
+                        .bold()
+                        .font(.title2)
+                        .padding(8)
+                        .background(.gray.opacity(0.1), in: Capsule())
+                        .padding(.leading)
+                        .symbolVariant(.circle.fill)
                 }
             }
         }

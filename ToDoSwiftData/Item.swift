@@ -8,11 +8,13 @@
 import Foundation
 import SwiftData
 
-@Model final class ToDoItem {
+@Model final class Item {
     var title: String
     var timestamp: Date
     var isCritical: Bool
     var isCompleted: Bool
+    
+    @Relationship(.nullify, inverse: \Category.items) var category: Category?
     
     init(title: String = "", timestamp: Date = .now, isCritical: Bool = false, isCompleted: Bool = false) {
         self.title = title

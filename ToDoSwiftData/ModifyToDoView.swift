@@ -1,19 +1,20 @@
 //
-//  UpdateToDoView.swift
+//  CreateToDoView.swift
 //  ToDoSwiftData
 //
-//  Created by Marcin Bartminski on 30/07/2023.
+//  Created by Marcin Bartminski on 28/07/2023.
 //
 
 import SwiftUI
 import SwiftData
 
-struct UpdateToDoView: View {
+struct ModifyToDoView: View {
     
     @Environment(\.dismiss) var dismiss
+    @Environment(\.modelContext) var context
     
-    @State var selectedCategory: Category?
-    @Bindable var item: Item
+    @State private var item = Item()
+    @State private var selectedCategory: Category?
     
     @Query private var categories: [Category]
     
@@ -43,19 +44,41 @@ struct UpdateToDoView: View {
             }
             
             Section {
-                Button("Update") {
-                    item.category = selectedCategory
+                Button("Create") {
+                    save()
                     dismiss.callAsFunction()
                 }
             }
+            
         }
-        .navigationTitle("Update ToDo")
-        .onAppear {
-            selectedCategory = item.category
+        .navigationTitle("Create ToDo")
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Dismiss") {
+                    dismiss.callAsFunction()
+                }
+            }
+            
+            ToolbarItem(placement: .primaryAction) {
+                Button("Done") {
+                    save()
+                    dismiss.callAsFunction()
+                }
+                .bold()
+            }
         }
     }
 }
 
+private extension ModifyToDoView {
+    func save() {
+        context.insert(item)
+        item.category = selectedCategory
+        selectedCategory?.items?.append(item)
+    }
+}
+
 #Preview {
-    UpdateToDoView(item: Item())
+    ModifyToDoView()
+        .modelContainer(for: Item.self)
 }
